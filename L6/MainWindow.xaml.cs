@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -6,25 +6,25 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace L6
+namespace WOF
 {
     public partial class MainWindow : Window
     {
-        static int wheel_divided = 8;
+        static int wheel_slices = 8;
         int money = 1000;
-        double status; //0=no; 1= starting; 2=ending
+        double status;
+        Path[] path = new Path[wheel_slices]; 
+        TextBlock[] textBlocks = new TextBlock[wheel_slices];
         Random rand = new Random();
-        Path[] path = new Path[wheel_divided]; 
-        TextBlock[] textBlocks = new TextBlock[wheel_divided];
         Dictionary<Color, int> Award = new Dictionary<Color, int>()
         {
-            { Colors.Red, 100 },            //Red
-            { Colors.LightSteelBlue, 10 },       //Blue
-            { Colors.Aquamarine, 0 },       //Green
-            { Colors.Gray, -500 },          //Gray
-            { Colors.PeachPuff, 777 },
-            { Colors.LightPink, -50 },
-            { Colors.LightYellow, 666 },
+            { Colors.Red, 1000 },            //Red
+            { Colors.LightSteelBlue, 100 },  //Blue
+            { Colors.Aquamarine, 10 },       //Green
+            { Colors.Gray, -500 },           //Grey
+            { Colors.PeachPuff, 125 },
+            { Colors.LightPink, -150 },
+            { Colors.LightYellow, 550 },
         };
         System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
 
@@ -40,13 +40,13 @@ namespace L6
         {
             // Initialize the wheel
             List<int> temp_award_allcate = new List<int>();
-            for (int i = 0; i < wheel_divided; i++)
+            for (int i = 0; i < wheel_slices; i++)
             {
                 path[i] = pies.Children[2 * i] as Path;
                 textBlocks[i] = pies.Children[2*i+1] as TextBlock;
             }
             // Fill adward information to the wheel
-            for (int i = 0, rdm; i < wheel_divided; i++)
+            for (int i = 0, rdm; i < wheel_slices; i++)
             {
                 do  {
                     rdm = rand.Next(Award.Count);
@@ -60,7 +60,7 @@ namespace L6
         // Every second past, trigger this call
         private void DispatcherTimerTick(object sender, EventArgs e)
         {
-            // Decrease acceleration when status set to 2 or above, float is to increase the randomness as it prevent returning a constant
+            // Float is to increase randomness as it prevents returning constant
             if (status >= 2) status += 0.03 * (1 + status * status * 0.01);
             if (status > 200){
                 StopWheelAndGetAdward();
@@ -68,9 +68,9 @@ namespace L6
                 ROTATE.Angle = (ROTATE.Angle + 30.34 / status) % 360;
             }
         }
-        private void UpdateWallet(int amountToChange = 0)
+        private void UpdateWallet(int AmountToChange = 0)
         {
-            money += amountToChange;
+            money += AmountToChange;
             textBlock.Text = "You have:\n" + money.ToString("C");
         }
         private void StartClick(object sender, RoutedEventArgs e)
@@ -94,23 +94,15 @@ namespace L6
         }
         private void StopWheelAndGetAdward()
         {
-            // Step the timer
             dispatcherTimer.Tick -= DispatcherTimerTick;
             dispatcherTimer.Stop();
 
-            // Calculate the arward by degree of rotation of the circle
-            // There are totally 8 award
-            // float award = 8*(degree/360)
-            // for example 
-            // 0 - 0.99 = award 0
-            // 1 - 1.99 = award 1
-            // 2 - 2.99 = award 2 etc.
-            int awardClass = (int)Math.Floor(wheel_divided * ROTATE.Angle / 360);
+            int awardClass = (int)Math.Floor(wheel_slices * ROTATE.Angle / 360);
             int awardAmount = int.Parse(textBlocks[awardClass].Text);
-            MessageBox.Show("You " + (awardAmount >= 0 ? "are lucky, you obtained " : "are unlucky, you wallet just ") + awardAmount + "!", "Thank you!");
+            MessageBox.Show("You " + (awardAmount >= 0 ? "are lucky. You gained " : "are unlucky. Your wallet just remained ") + awardAmount + "!", "Thank you!");
             UpdateWallet(awardAmount);
 
-            // Allow to start the game again
+            // Allow to restart the game
             start_button.Foreground = new SolidColorBrush(Colors.White);
             start_button.IsEnabled = true;
         }
